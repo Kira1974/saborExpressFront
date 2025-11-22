@@ -1,0 +1,111 @@
+
+
+Arroz con todas las carnes
+- 1 Caja de arroz--68.000
+- 1/2 Caja de arroz--40.000
+- 1/4 Caja de arroz--30.000
+
+Arroz con pollo y camaron
+- 1 Caja de arroz--75.000
+- 1/2 Caja de arroz--45.000
+- 1/4 Caja de arroz--33.000
+
+Pollo asado
+- 1 pollo asado--40.000
+- 1/2 pollo asado--22.000
+- 1/4 pollo asado--14.000
+Todo acompañado con papa salada, maduro y arepa
+
+Pollo broaster
+- 1 pollo broaster--45.000
+- 1/2 pollo broaster--25.000
+- 1/4 pollo broaster--14.000
+Todo acompañado con papa a la francesa, maduro y arepa
+
+Pollo mixto
+- 1 pollo(1/2 pollo asado y 1/2 pollo broaster)--42.000
+- 1/2 pollo(1/4 pollo asado y 1/4 pollo broaster)--23.000
+Todo acompañado con papa a la francesa, papa salada, maduro y arepa
+
+Combos de arroz chino sencilo con pollo
+- 1 caja de arroz y 1 pollo (asado o broaster)--65.000
+- 1/2 caja de arroz y 1 pollo (asado o broaster)--50.000
+- 1 caja de arroz y 1/2 pollo (asado o broaster)--50.000
+- 1/2 caja de arroz y 1/2 pollo (asado o broaster)--38.000
+- 1/4 de caja de arroz y 1/2 pollo (asado o broaster)--30.000
+- 1 porcion de arroz y 1/2 pollo (asado o broaster)--24.000
+- 2 porciones de arroz y 1/4 de pollo (asado o broaster)--20.000
+
+Bebidas
+- Agua en bolsa--600
+- Botella de agua mini--1.000
+- Botella de agua personal--2.000
+- Jugo personal--4.000
+- Caja de jugo--7.000
+- Gaseosa 3 litros (Cocacola, manzana o  colombiana)--12.000
+- Gaseosa 1.5 litros (Cocacola, manzana o  colombiana)--8.000
+- Gaseosa 1 litro (Cocacola, manzana o  colombiana)--6.000
+- Gaseosa personal (Cocacola, manzana o  colombiana)--3.000
+- Gaseosa cocacola (500ml)--4.000
+- Cocacola mini--2.000
+- Pony personal--3.000
+
+
+
+
+
+📂 2. Lista de Archivos para public/img/
+Ahora sí, esta es la lista exacta de nombres de archivo que debes tener en tu carpeta para cubrir todas las presentaciones.
+
+Arroces:
+
+arroz-carnes-caja.jpg
+
+arroz-carnes-media.jpg
+
+arroz-carnes-cuarto.jpg
+
+arroz-camaron-caja.jpg
+
+arroz-camaron-media.jpg
+
+arroz-camaron-cuarto.jpg
+
+Pollo Asado:
+
+pollo-asado-entero.jpg
+
+pollo-asado-medio.jpg
+
+pollo-asado-cuarto.jpg
+
+Pollo Broaster:
+
+pollo-broaster-entero.jpg
+
+pollo-broaster-medio.jpg
+
+pollo-broaster-cuarto.jpg
+
+Pollo Mixto:
+
+pollo-mixto-entero.jpg
+
+pollo-mixto-medio.jpg
+
+Combos:
+
+combo-1caja-1pollo.jpg
+
+combo-media-1pollo.jpg
+
+combo-1caja-mediopollo.jpg
+
+combo-media-mediopollo.jpg
+
+combo-cuarto-mediopollo.jpg
+
+combo-porcion-mediopollo.jpg
+
+combo-2porciones-cuarto.jpg
+
