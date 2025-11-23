@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from "react";
 import { authService } from "../services/authService";
+import { toast } from "react-toastify";
 
 const AuthContext = createContext();
 
@@ -9,71 +10,78 @@ export const AuthProvider = ({ children }) => {
 
   // Al cargar la app, verificamos si ya hay sesión guardada
   useEffect(() => {
-    const storedUser = localStorage.getItem("USER_DATA");
-    const token = localStorage.getItem("AUTH_TOKEN");
+    const checkAuth = () => {
+      const storedUser = localStorage.getItem("USER_DATA");
+      const token = localStorage.getItem("AUTH_TOKEN");
 
-    if (storedUser && token) {
-      setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+      if (storedUser && token) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (error) {
+          console.error("Error al parsear usuario:", error);
+          localStorage.removeItem("USER_DATA");
+          localStorage.removeItem("AUTH_TOKEN");
+        }
+      }
+      setLoading(false);
+    };
+
+    checkAuth();
   }, []);
 
   const login = async (email, password) => {
-    /* ---------------------------------------------------------------
-       OPCIÓN A: BACKEND REAL (Descomenta esto cuando tengas la API)
-       --------------------------------------------------------------- */
-    /*
     try {
+      // Llamada REAL al backend
       const data = await authService.login({ email, password });
 
+      // Guardamos el token y los datos del usuario
       localStorage.setItem("AUTH_TOKEN", data.access_token);
       localStorage.setItem("USER_DATA", JSON.stringify(data.user));
 
       setUser(data.user);
-      return { success: true };
+
+      return {
+        success: true,
+        user: data.user,
+      };
     } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || "Error al iniciar sesión",
-      };
-    }
-    */
+      console.error("Error en login:", error);
 
-    /* ---------------------------------------------------------------
-       OPCIÓN B: SIMULACIÓN TEMPORAL (Para desarrollo sin backend)
-       --------------------------------------------------------------- */
+      // Manejo de errores más específico
+      let errorMessage = "Error al iniciar sesión";
 
-    // Simulamos una pequeña espera de red
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (error.response) {
+        // El servidor respondió con un error
+        const { status, data } = error.response;
 
-    // Validamos credenciales "Hardcodeadas"
-    if (email === "admin@saborexpress.com" && password === "admin123") {
-      const userMock = {
-        id: 1,
-        nombre: "Administrador",
-        email: "admin@saborexpress.com",
-        rol: "admin",
-      };
-      const tokenMock = "token-falso-123456789";
+        if (status === 401) {
+          errorMessage = data.message || "Credenciales inválidas";
+        } else if (status === 400) {
+          errorMessage = data.message || "Datos inválidos";
+        } else if (status >= 500) {
+          errorMessage = "Error del servidor. Intenta más tarde.";
+        }
+      } else if (error.request) {
+        // La petición fue hecha pero no hubo respuesta
+        errorMessage =
+          "No se pudo conectar con el servidor. Verifica tu conexión.";
+      }
 
-      localStorage.setItem("AUTH_TOKEN", tokenMock);
-      localStorage.setItem("USER_DATA", JSON.stringify(userMock));
-      setUser(userMock);
-      return { success: true };
-    } else {
-      return {
-        success: false,
-        message:
-          "Credenciales incorrectas (Prueba: admin@saborexpress.com / admin123)",
-      };
+      toast.error(errorMessage, {
+        position: "top-center",
+        autoClose: 4000,
+      });
+
+      throw new Error(errorMessage);
     }
   };
 
   const logout = () => {
-    // authService.logout(); // Descomentar si tu servicio hace llamada a API
-    localStorage.removeItem("AUTH_TOKEN");
-    localStorage.removeItem("USER_DATA");
+    authService.logout();
     setUser(null);
+    toast.info("Sesión cerrada correctamente", {
+      position: "top-center",
+    });
   };
 
   return (
