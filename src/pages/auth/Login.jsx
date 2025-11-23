@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { toast } from "react-toastify";
-import { ChefHat, Lock, Mail, ArrowRight, Loader2 } from "lucide-react";
+import { ChefHat, Lock, Mail, ArrowRight, Loader2, Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // 👁️ Estado para mostrar/ocultar
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -42,10 +43,9 @@ export default function Login() {
         }
       }
     } catch (error) {
-      // El error ya se maneja en AuthProvider, pero por si acaso
-      toast.error(error.message || "Error al iniciar sesión", {
-        position: "top-center",
-      });
+      // 🔧 FIX: NO mostramos toast aquí porque ya se muestra en AuthProvider
+      // Solo capturamos el error silenciosamente
+      console.error("Error en login:", error.message);
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,7 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* Campo Password */}
+              {/* Campo Password con Ojito 👁️ */}
               <div className="space-y-2">
                 <label
                   htmlFor="password"
@@ -114,13 +114,26 @@ export default function Login() {
                 <div className="relative">
                   <input
                     id="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"} // 👁️ Cambia el tipo
                     placeholder="••••••••"
-                    className="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-red-100 transition-all duration-200 text-gray-700"
+                    className="w-full px-4 py-3.5 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-red-100 transition-all duration-200 text-gray-700"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={loading}
                   />
+                  {/* 👁️ Botón para mostrar/ocultar contraseña */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    disabled={loading}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
               </div>
 
