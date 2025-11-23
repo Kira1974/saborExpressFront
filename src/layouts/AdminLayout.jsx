@@ -32,6 +32,16 @@ export default function AdminLayout() {
             Pedidos & Ventas
           </Link>
 
+          {/*Enlace a Gestión de Productos */}
+          <Link
+            to="/admin/productos"
+            className={`${
+              location.pathname === "/admin/productos" ? "text-primary" : "text-white"
+            } font-bold text-lg hover:text-primary transition-colors`}
+          >
+            Gestión de Productos
+          </Link>
+
           {/* Enlace a Cocina */}
           <Link
             to="/cocina"

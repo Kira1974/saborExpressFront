@@ -9,6 +9,7 @@ import Menu from "../pages/kiosk/Menu";
 import Login from "../pages/auth/Login";
 import Kitchen from "../pages/kitchen/Kitchen";
 import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminProducts from "../pages/admin/AdminProducts";
 import TurnMonitor from "../pages/monitor/TurnMonitor"; // <--- NUEVO: Monitor Real
 
 export const AppRouter = () => {
@@ -31,6 +32,7 @@ export const AppRouter = () => {
         {/* 🛡️ RUTAS PRIVADAS (Requieren Login) */}
         {/* Todo lo que esté aquí verifica token y usa el Sidebar Admin */}
         <Route element={<AdminLayout />}>
+          <Route path="/admin/productos" element={<AdminProducts />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/cocina" element={<Kitchen />} />
         </Route>
