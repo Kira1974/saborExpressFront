@@ -1,326 +1,152 @@
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import ProductCard from "../../components/kiosk/ProductCard";
 import CategorySidebar from "../../components/kiosk/CategorySidebar";
-import OrderSummary from "../../components/kiosk/OrderSummary"; // <--- NUEVO IMPORT
-
-// --- BASE DE DATOS LOCAL DEL MENÚ ---
-// Los nombres de 'imagen' coinciden con los archivos en public/img/
-const PRODUCTOS_DATA = [
-  // 1. ARROCES - TODAS LAS CARNES
-  {
-    id: 101,
-    nombre: "Caja de Arroz (Todas las carnes)",
-    precio: 68000,
-    categoria: "Arroces",
-    imagen: "arroz-carnes-caja",
-    descripcion: "Caja completa. Incluye todas las carnes especial.",
-  },
-  {
-    id: 102,
-    nombre: "1/2 Caja de Arroz (Todas las carnes)",
-    precio: 40000,
-    categoria: "Arroces",
-    imagen: "arroz-carnes-media",
-    descripcion: "Media caja de arroz con todas las carnes.",
-  },
-  {
-    id: 103,
-    nombre: "1/4 Caja de Arroz (Todas las carnes)",
-    precio: 30000,
-    categoria: "Arroces",
-    imagen: "arroz-carnes-cuarto",
-    descripcion: "Cuarto de caja de arroz con todas las carnes.",
-  },
-
-  // ARROCES - POLLO Y CAMARÓN
-  {
-    id: 104,
-    nombre: "Caja Arroz Pollo y Camarón",
-    precio: 75000,
-    categoria: "Arroces",
-    imagen: "arroz-camaron-caja",
-    descripcion: "Arroz especial con pollo y camarón.",
-  },
-  {
-    id: 105,
-    nombre: "1/2 Caja Arroz Pollo y Camarón",
-    precio: 45000,
-    categoria: "Arroces",
-    imagen: "arroz-camaron-media",
-    descripcion: "Media caja con pollo y camarón.",
-  },
-  {
-    id: 106,
-    nombre: "1/4 Caja Arroz Pollo y Camarón",
-    precio: 33000,
-    categoria: "Arroces",
-    imagen: "arroz-camaron-cuarto",
-    descripcion: "Cuarto de caja con pollo y camarón.",
-  },
-
-  // 2. POLLO ASADO
-  {
-    id: 201,
-    nombre: "1 Pollo Asado",
-    precio: 40000,
-    categoria: "Pollo Asado",
-    imagen: "pollo-asado-entero",
-    descripcion: "Acompañado con papa salada, maduro y arepa.",
-  },
-  {
-    id: 202,
-    nombre: "1/2 Pollo Asado",
-    precio: 22000,
-    categoria: "Pollo Asado",
-    imagen: "pollo-asado-medio",
-    descripcion: "Acompañado con papa salada, maduro y arepa.",
-  },
-  {
-    id: 203,
-    nombre: "1/4 Pollo Asado",
-    precio: 14000,
-    categoria: "Pollo Asado",
-    imagen: "pollo-asado-cuarto",
-    descripcion: "Acompañado con papa salada, maduro y arepa.",
-  },
-
-  // 3. POLLO BROASTER
-  {
-    id: 301,
-    nombre: "1 Pollo Broaster",
-    precio: 45000,
-    categoria: "Pollo Broaster",
-    imagen: "pollo-broaster-entero",
-    descripcion: "Acompañado con papa a la francesa, maduro y arepa.",
-  },
-  {
-    id: 302,
-    nombre: "1/2 Pollo Broaster",
-    precio: 25000,
-    categoria: "Pollo Broaster",
-    imagen: "pollo-broaster-medio",
-    descripcion: "Acompañado con papa a la francesa, maduro y arepa.",
-  },
-  {
-    id: 303,
-    nombre: "1/4 Pollo Broaster",
-    precio: 14000,
-    categoria: "Pollo Broaster",
-    imagen: "pollo-broaster-cuarto",
-    descripcion: "Acompañado con papa a la francesa, maduro y arepa.",
-  },
-
-  // 4. POLLO MIXTO
-  {
-    id: 401,
-    nombre: "1 Pollo Mixto",
-    precio: 42000,
-    categoria: "Pollo Mixto",
-    imagen: "pollo-mixto-entero",
-    descripcion:
-      "1/2 Asado + 1/2 Broaster. Incluye papa francesa, papa salada, maduro y arepa.",
-  },
-  {
-    id: 402,
-    nombre: "1/2 Pollo Mixto",
-    precio: 23000,
-    categoria: "Pollo Mixto",
-    imagen: "pollo-mixto-medio",
-    descripcion:
-      "1/4 Asado + 1/4 Broaster. Incluye papa francesa, papa salada, maduro y arepa.",
-  },
-
-  // 5. COMBOS (Arroz Chino + Pollo)
-  {
-    id: 501,
-    nombre: "Combo: 1 Caja Arroz + 1 Pollo",
-    precio: 65000,
-    categoria: "Combos",
-    imagen: "combo-1caja-1pollo",
-    descripcion: "Arroz chino sencillo + 1 Pollo (Asado o Broaster).",
-  },
-  {
-    id: 502,
-    nombre: "Combo: 1/2 Arroz + 1 Pollo",
-    precio: 50000,
-    categoria: "Combos",
-    imagen: "combo-media-1pollo",
-    descripcion: "1/2 Caja Arroz + 1 Pollo (Asado o Broaster).",
-  },
-  {
-    id: 503,
-    nombre: "Combo: 1 Arroz + 1/2 Pollo",
-    precio: 50000,
-    categoria: "Combos",
-    imagen: "combo-1caja-mediopollo",
-    descripcion: "1 Caja Arroz + 1/2 Pollo (Asado o Broaster).",
-  },
-  {
-    id: 504,
-    nombre: "Combo: 1/2 Arroz + 1/2 Pollo",
-    precio: 38000,
-    categoria: "Combos",
-    imagen: "combo-media-mediopollo",
-    descripcion: "1/2 Caja Arroz + 1/2 Pollo (Asado o Broaster).",
-  },
-  {
-    id: 505,
-    nombre: "Combo: 1/4 Arroz + 1/2 Pollo",
-    precio: 30000,
-    categoria: "Combos",
-    imagen: "combo-cuarto-mediopollo",
-    descripcion: "1/4 Caja Arroz + 1/2 Pollo (Asado o Broaster).",
-  },
-  {
-    id: 506,
-    nombre: "Combo: 1 Porción Arroz + 1/2 Pollo",
-    precio: 24000,
-    categoria: "Combos",
-    imagen: "combo-porcion-mediopollo",
-    descripcion: "1 Porción Arroz + 1/2 Pollo (Asado o Broaster).",
-  },
-  {
-    id: 507,
-    nombre: "Combo: 2 Porciones Arroz + 1/4 Pollo",
-    precio: 20000,
-    categoria: "Combos",
-    imagen: "combo-2porciones-cuarto",
-    descripcion: "2 Porciones Arroz + 1/4 Pollo (Asado o Broaster).",
-  },
-
-  // 6. BEBIDAS
-  {
-    id: 601,
-    nombre: "Agua en bolsa",
-    precio: 600,
-    categoria: "Bebidas",
-    imagen: "agua-bolsa",
-  },
-  {
-    id: 602,
-    nombre: "Botella agua mini",
-    precio: 1000,
-    categoria: "Bebidas",
-    imagen: "agua-botella",
-  },
-  {
-    id: 603,
-    nombre: "Botella agua personal",
-    precio: 2000,
-    categoria: "Bebidas",
-    imagen: "agua-personal",
-  },
-  {
-    id: 604,
-    nombre: "Jugo personal",
-    precio: 4000,
-    categoria: "Bebidas",
-    imagen: "jugo-hit",
-  },
-  {
-    id: 605,
-    nombre: "Caja de jugo",
-    precio: 7000,
-    categoria: "Bebidas",
-    imagen: "jugo-caja",
-  },
-  {
-    id: 606,
-    nombre: "Gaseosa 3 Litros",
-    precio: 12000,
-    categoria: "Bebidas",
-    imagen: "gaseosa-3l",
-    descripcion: "Coca-Cola, Manzana o Colombiana",
-  },
-  {
-    id: 607,
-    nombre: "Gaseosa 1.5 Litros",
-    precio: 8000,
-    categoria: "Bebidas",
-    imagen: "gaseosa-15l",
-    descripcion: "Coca-Cola, Manzana o Colombiana",
-  },
-  {
-    id: 608,
-    nombre: "Gaseosa 1 Litro",
-    precio: 6000,
-    categoria: "Bebidas",
-    imagen: "gaseosa-1l",
-    descripcion: "Coca-Cola, Manzana o Colombiana",
-  },
-  {
-    id: 609,
-    nombre: "Gaseosa Personal",
-    precio: 3000,
-    categoria: "Bebidas",
-    imagen: "gaseosa-personal",
-    descripcion: "Coca-Cola, Manzana o Colombiana",
-  },
-  {
-    id: 610,
-    nombre: "Coca-Cola 500ml",
-    precio: 4000,
-    categoria: "Bebidas",
-    imagen: "coca-500",
-  },
-  {
-    id: 611,
-    nombre: "Coca-Cola Mini",
-    precio: 2000,
-    categoria: "Bebidas",
-    imagen: "coca-mini",
-  },
-  {
-    id: 612,
-    nombre: "Pony Malta Personal",
-    precio: 3000,
-    categoria: "Bebidas",
-    imagen: "pony",
-  },
-];
+import OrderSummary from "../../components/kiosk/OrderSummary";
+import { productService } from "../../services/productService";
+import { Loader2, AlertCircle } from "lucide-react";
 
 export default function Menu() {
   const [productos, setProductos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [categoriaActual, setCategoriaActual] = useState({
-    id: 1,
+    id: "ARROCES",
     nombre: "Arroces",
   });
 
+  // Cargar productos desde el backend
   useEffect(() => {
-    // Simulamos carga de API
-    setProductos(PRODUCTOS_DATA);
+    const cargarProductos = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await productService.getAllProducts();
+        
+        // Debug: Ver qué nos devuelve el backend
+        console.log("Productos cargados desde backend:", data);
+        console.log("Primer producto:", data[0]);
+        
+        setProductos(data);
+      } catch (error) {
+        console.error("Error al cargar productos:", error);
+        setError("No se pudieron cargar los productos. Verifica tu conexión.");
+        toast.error("Error al cargar el menú", {
+          position: "top-center",
+          toastId: "products-error",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarProductos();
   }, []);
 
+  // Filtrar productos por categoría
   const productosFiltrados = productos.filter(
-    (producto) => producto.categoria === categoriaActual.nombre
+    (producto) => producto.categoria === categoriaActual.id && producto.disponible
   );
 
+  // Debug: Ver productos filtrados
+  console.log("Categoría actual:", categoriaActual);
+  console.log("Productos filtrados:", productosFiltrados);
+
+  // Estado de carga
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="w-16 h-16 text-primary animate-spin mx-auto mb-4" />
+          <p className="text-xl font-bold text-gray-700">Cargando menú...</p>
+          <p className="text-gray-500 mt-2">Por favor espera un momento</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Estado de error
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <div className="text-center max-w-md">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            Error al cargar el menú
+          </h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-primary hover:bg-red-700 text-white font-bold py-3 px-8 rounded-lg transition-colors"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="md:flex md:min-h-screen overflow-hidden bg-gray-50">
+    <div className="md:flex md:min-h-screen overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Sidebar Izquierdo: Categorías */}
       <CategorySidebar
         categoriaActual={categoriaActual}
         setCategoriaActual={setCategoriaActual}
+        productosDisponibles={productos}
       />
 
       {/* Contenido Central: Productos */}
-      {/* 'md:mr-96' crea el espacio para que el carrito no tape los productos */}
       <main className="flex-1 h-screen overflow-y-auto p-6 md:mr-96">
-        <div className="max-w-4xl mx-auto">
-          <header className="mb-8">
-            <h1 className="text-4xl font-black text-gray-800 uppercase border-b-4 border-primary inline-block pb-2">
-              {categoriaActual.nombre}
-            </h1>
-            <p className="text-lg text-gray-500 mt-2">
-              Selecciona tus productos favoritos para ordenar.
-            </p>
+        <div className="max-w-6xl mx-auto">
+          {/* Header Mejorado */}
+          <header className="mb-8 animate-fade-in">
+            <div className="bg-white rounded-2xl shadow-lg p-6 border-l-4 border-primary">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-4xl font-black text-gray-800 uppercase tracking-tight">
+                    {categoriaActual.nombre}
+                  </h1>
+                  <p className="text-gray-500 mt-2 flex items-center gap-2">
+                    <span className="inline-block w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    {productosFiltrados.length} productos disponibles
+                  </p>
+                </div>
+                
+                {/* Badge de Categoría */}
+                <div className="hidden md:block">
+                  <div className="bg-gradient-to-r from-primary to-red-700 text-white px-6 py-3 rounded-xl">
+                    <p className="text-xs font-bold uppercase tracking-wider">
+                      Categoría
+                    </p>
+                    <p className="text-2xl font-black">{categoriaActual.nombre}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </header>
 
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
-            {productosFiltrados.map((producto) => (
-              <ProductCard key={producto.id} producto={producto} />
-            ))}
-          </div>
+          {/* Grid de Productos */}
+          {productosFiltrados.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="bg-white rounded-2xl shadow-lg p-12 text-center max-w-md">
+                <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <AlertCircle className="w-12 h-12 text-gray-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                  No hay productos disponibles
+                </h3>
+                <p className="text-gray-500">
+                  Por favor selecciona otra categoría
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 animate-fade-in">
+              {productosFiltrados.map((producto) => (
+                <ProductCard key={producto.id} producto={producto} />
+              ))}
+            </div>
+          )}
         </div>
       </main>
 

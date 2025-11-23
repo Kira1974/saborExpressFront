@@ -1,81 +1,103 @@
-const ORDERS_KEY = "SABOR_EXPRESS_ORDERS";
-const TURN_KEY = "SABOR_EXPRESS_TURN";
-
-// Helper para obtener la fecha actual como string "YYYY-MM-DD"
-const getTodayDate = () => {
-  return new Date().toISOString().split("T")[0];
-};
+import axiosClient from "../config/axiosClient";
 
 export const orderService = {
   /**
-     Crea una orden, gestiona el consecutivo del turno y guarda localmente.
-     */
+   * Crear una nueva orden en el backend
+   */
   createOrder: async (orderData) => {
-    // 1. Simular retardo de red
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    const hoy = getTodayDate();
-
-    // --- GESTIÓN DEL TURNO ---
-    let turnData = JSON.parse(localStorage.getItem(TURN_KEY)) || {
-      date: hoy,
-      count: 0,
-    };
-
-    // Si la fecha guardada es diferente a hoy, REINICIAMOS el contador
-    if (turnData.date !== hoy) {
-      turnData = { date: hoy, count: 0 };
+    try {
+      const { data } = await axiosClient.post("/orders", orderData);
+      return data;
+    } catch (error) {
+      console.error("Error al crear orden:", error);
+      
+      // Manejo de errores
+      let errorMessage = "Error al crear el pedido";
+      
+      if (error.response) {
+        const { status, data } = error.response;
+        
+        if (status === 400) {
+          if (Array.isArray(data.message)) {
+            errorMessage = data.message.join(", ");
+          } else {
+            errorMessage = data.message || "Datos inválidos en el pedido";
+          }
+        } else if (status === 404) {
+          errorMessage = "Producto no encontrado o no disponible";
+        } else if (status >= 500) {
+          errorMessage = "Error del servidor. Intenta nuevamente.";
+        }
+      } else if (error.request) {
+        errorMessage = "No se pudo conectar con el servidor. Verifica tu conexión.";
+      }
+      
+      throw new Error(errorMessage);
     }
-
-    // Incrementamos turno
-    turnData.count += 1;
-    // Guardamos el nuevo turno
-    localStorage.setItem(TURN_KEY, JSON.stringify(turnData));
-
-    // --- GESTIÓN DEL PEDIDO ---
-    const newOrder = {
-      ...orderData,
-      id: Date.now(), // ID único basado en tiempo
-      turno: String(turnData.count).padStart(3, "0"), // Ej: "005"
-      fecha: hoy,
-      hora: new Date().toLocaleTimeString(),
-      estado: "pendiente", // pendiente -> preparacion -> listo -> entregado
-    };
-
-    // --- GESTIÓN DE PERSISTENCIA (BD LOCAL) ---
-    // Obtenemos las ordenes existentes
-    let storedOrders = JSON.parse(localStorage.getItem(ORDERS_KEY)) || [];
-
-    // Agregamos la nueva orden
-    storedOrders.push(newOrder);
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(storedOrders));
-
-    return newOrder;
   },
 
   /**
-   * Obtiene las ordenes del día para el Dashboard y Cocina
+   * Obtener todas las órdenes (para admin)
    */
-  getOrders: async () => {
-    const hoy = getTodayDate();
-    const allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY)) || [];
-
-    // Filtramos solo las de HOY para los reportes diarios
-    // Si quieres historial completo, quita el .filter
-    return allOrders.filter((order) => order.fecha === hoy);
+  getOrders: async (filters = {}) => {
+    try {
+      const { data } = await axiosClient.get("/orders", { params: filters });
+      return data;
+    } catch (error) {
+      console.error("Error al obtener órdenes:", error);
+      throw error;
+    }
   },
 
   /**
-   * Actualiza el estado de una orden (Para Cocina)
+   * Obtener órdenes pendientes de pago
    */
-  updateOrderStatus: async (id, status) => {
-    let allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY)) || [];
+  getPendingPaymentOrders: async () => {
+    try {
+      const { data } = await axiosClient.get("/orders/pending-payment");
+      return data;
+    } catch (error) {
+      console.error("Error al obtener órdenes pendientes:", error);
+      throw error;
+    }
+  },
 
-    const updatedOrders = allOrders.map((order) =>
-      order.id === id ? { ...order, estado: status } : order
-    );
+  /**
+   * Obtener órdenes activas en cocina
+   */
+  getActiveKitchenOrders: async () => {
+    try {
+      const { data } = await axiosClient.get("/orders/kitchen/active");
+      return data;
+    } catch (error) {
+      console.error("Error al obtener órdenes de cocina:", error);
+      throw error;
+    }
+  },
 
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(updatedOrders));
-    return { success: true };
+  /**
+   * Marcar orden como pagada
+   */
+  markAsPaid: async (orderId) => {
+    try {
+      const { data } = await axiosClient.patch(`/orders/${orderId}/mark-paid`);
+      return data;
+    } catch (error) {
+      console.error("Error al marcar como pagado:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Marcar orden como lista (desde cocina)
+   */
+  markAsReady: async (orderId) => {
+    try {
+      const { data } = await axiosClient.patch(`/orders/${orderId}/mark-ready`);
+      return data;
+    } catch (error) {
+      console.error("Error al marcar como listo:", error);
+      throw error;
+    }
   },
 };
