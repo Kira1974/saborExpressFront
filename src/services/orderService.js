@@ -1,103 +1,95 @@
 import axiosClient from "../config/axiosClient";
 
 export const orderService = {
-  /**
-   * Crear una nueva orden en el backend
-   */
+  // ============================================
+  // PANTALLA 1 - KIOSCO (PÚBLICO)
+  // ============================================
+  
+  // Crear nuevo pedido desde el kiosco
   createOrder: async (orderData) => {
-    try {
-      const { data } = await axiosClient.post("/orders", orderData);
-      return data;
-    } catch (error) {
-      console.error("Error al crear orden:", error);
-      
-      // Manejo de errores
-      let errorMessage = "Error al crear el pedido";
-      
-      if (error.response) {
-        const { status, data } = error.response;
-        
-        if (status === 400) {
-          if (Array.isArray(data.message)) {
-            errorMessage = data.message.join(", ");
-          } else {
-            errorMessage = data.message || "Datos inválidos en el pedido";
-          }
-        } else if (status === 404) {
-          errorMessage = "Producto no encontrado o no disponible";
-        } else if (status >= 500) {
-          errorMessage = "Error del servidor. Intenta nuevamente.";
-        }
-      } else if (error.request) {
-        errorMessage = "No se pudo conectar con el servidor. Verifica tu conexión.";
-      }
-      
-      throw new Error(errorMessage);
-    }
+    const { data } = await axiosClient.post("/orders", orderData);
+    return data;
   },
 
-  /**
-   * Obtener todas las órdenes (para admin)
-   */
-  getOrders: async (filters = {}) => {
-    try {
-      const { data } = await axiosClient.get("/orders", { params: filters });
-      return data;
-    } catch (error) {
-      console.error("Error al obtener órdenes:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Obtener órdenes pendientes de pago
-   */
+  // ============================================
+  // PANTALLA 2 - ADMINISTRADOR (CAJA) 🔒
+  // ============================================
+  
+  // Obtener pedidos pendientes de pago (recién creados en kiosco)
   getPendingPaymentOrders: async () => {
-    try {
-      const { data } = await axiosClient.get("/orders/pending-payment");
-      return data;
-    } catch (error) {
-      console.error("Error al obtener órdenes pendientes:", error);
-      throw error;
-    }
+    const { data } = await axiosClient.get("/orders/pending-payment");
+    return data;
   },
 
-  /**
-   * Obtener órdenes activas en cocina
-   */
+  // Marcar pedido como pagado y enviar automáticamente a cocina
+  markAsPaidAndSendToKitchen: async (orderId) => {
+    const { data } = await axiosClient.patch(`/orders/${orderId}/mark-paid`);
+    return data;
+  },
+
+  // Cancelar pedido no pagado
+  cancelOrder: async (orderId) => {
+    const { data } = await axiosClient.patch(`/orders/${orderId}/cancel`);
+    return data;
+  },
+
+  // Ver pedidos en cocina (para el módulo de monitoreo del admin)
+  getKitchenOrdersForAdmin: async () => {
+    const { data } = await axiosClient.get("/orders/kitchen-view");
+    return data;
+  },
+
+  // Enviar pedido listo a la pantalla de turnos (Pantalla 4)
+  sendToDisplay: async (orderId) => {
+    const { data } = await axiosClient.patch(`/orders/${orderId}/send-to-display`);
+    return data;
+  },
+
+  // ============================================
+  // PANTALLA 3 - COCINA (PÚBLICO)
+  // ============================================
+  
+  // Obtener pedidos activos en cocina (EN_COCINA)
   getActiveKitchenOrders: async () => {
-    try {
-      const { data } = await axiosClient.get("/orders/kitchen/active");
-      return data;
-    } catch (error) {
-      console.error("Error al obtener órdenes de cocina:", error);
-      throw error;
-    }
+    const { data } = await axiosClient.get("/orders/kitchen/active");
+    return data;
   },
 
-  /**
-   * Marcar orden como pagada
-   */
-  markAsPaid: async (orderId) => {
-    try {
-      const { data } = await axiosClient.patch(`/orders/${orderId}/mark-paid`);
-      return data;
-    } catch (error) {
-      console.error("Error al marcar como pagado:", error);
-      throw error;
-    }
-  },
-
-  /**
-   * Marcar orden como lista (desde cocina)
-   */
+  // Marcar pedido como listo (cocina termina de preparar)
   markAsReady: async (orderId) => {
-    try {
-      const { data } = await axiosClient.patch(`/orders/${orderId}/mark-ready`);
-      return data;
-    } catch (error) {
-      console.error("Error al marcar como listo:", error);
-      throw error;
-    }
+    const { data } = await axiosClient.patch(`/orders/${orderId}/mark-ready`);
+    return data;
+  },
+
+  // ============================================
+  // PANTALLA 4 - MONITOR DE TURNOS (PÚBLICO)
+  // ============================================
+  
+  // Obtener el turno que se está mostrando actualmente en la pantalla
+  getCurrentDisplayTurn: async () => {
+    const { data } = await axiosClient.get("/orders/current-display");
+    return data;
+  },
+
+  // ============================================
+  // CONSULTAS GENERALES 🔒
+  // ============================================
+  
+  // Obtener todas las órdenes con filtros opcionales
+  getAllOrders: async (filters = {}) => {
+    const { data} = await axiosClient.get("/orders", { params: filters });
+    return data;
+  },
+
+  // Obtener detalle de una orden específica
+  getOrderById: async (orderId) => {
+    const { data } = await axiosClient.get(`/orders/${orderId}`);
+    return data;
+  },
+
+  // Marcar pedido como entregado (completa el ciclo)
+  markAsDelivered: async (orderId) => {
+    const { data } = await axiosClient.patch(`/orders/${orderId}/mark-delivered`);
+    return data;
   },
 };
