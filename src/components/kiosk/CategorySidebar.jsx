@@ -2,11 +2,11 @@ import { ShoppingBag, Drumstick, Flame, Pizza, Package, Coffee } from "lucide-re
 
 const categorias = [
   { id: "ARROCES", nombre: "Arroces", icono: ShoppingBag, color: "from-orange-500 to-red-500" },
-  { id: "POLLO_ASADO", nombre: "Pollo Asado", icono: Drumstick, color: "from-yellow-600 to-orange-600" },
-  { id: "POLLO_BROASTER", nombre: "Pollo Broaster", icono: Flame, color: "from-red-600 to-pink-600" },
-  { id: "POLLO_MIXTO", nombre: "Pollo Mixto", icono: Pizza, color: "from-purple-600 to-pink-600" },
-  { id: "COMBOS", nombre: "Combos", icono: Package, color: "from-green-600 to-teal-600" },
-  { id: "BEBIDAS", nombre: "Bebidas", icono: Coffee, color: "from-blue-600 to-cyan-600" },
+  { id: "POLLO_ASADO", nombre: "Pollo Asado", icono: Drumstick, color: "from-yellow-500 to-orange-500" },
+  { id: "POLLO_BROASTER", nombre: "Pollo Broaster", icono: Flame, color: "from-red-500 to-pink-500" },
+  { id: "POLLO_MIXTO", nombre: "Pollo Mixto", icono: Pizza, color: "from-purple-500 to-pink-500" },
+  { id: "COMBOS", nombre: "Combos", icono: Package, color: "from-green-500 to-emerald-500" },
+  { id: "BEBIDAS", nombre: "Bebidas", icono: Coffee, color: "from-blue-500 to-cyan-500" },
 ];
 
 export default function CategorySidebar({
@@ -22,81 +22,87 @@ export default function CategorySidebar({
   };
 
   return (
-    <aside className="md:w-80 md:h-screen bg-gradient-to-b from-gray-900 to-gray-800 border-r border-gray-700 overflow-y-scroll custom-scrollbar shadow-2xl z-10 flex flex-col">
-      {/* Header */}
-      <div className="p-8 bg-gradient-to-r from-primary to-red-700 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_50%_50%,_white_2px,_transparent_2px)] bg-[length:30px_30px]"></div>
-<div className="relative z-10">
-<h2 className="text-3xl font-black text-white text-center tracking-wide mb-2">
-SABOR EXPRESS
-</h2>
-<p className="text-center text-yellow-300 font-bold text-sm uppercase tracking-wider">
-Menú Digital
-</p>
-</div>
-</div>{/* Lista de Categorías */}
-  <div className="mt-2 flex-1 p-2">
-    {categorias.map((categoria) => {
-      const Icon = categoria.icono;
-      const count = contarProductos(categoria.id);
-      const isActive = categoriaActual.id === categoria.id;
-
-      return (
-        <button
-          key={categoria.id}
-          type="button"
-          className={`${
-            isActive
-              ? "bg-gradient-to-r " + categoria.color + " text-white shadow-xl scale-105"
-              : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-          } 
-          text-left font-bold w-full p-4 rounded-xl cursor-pointer flex items-center gap-4 border-2 ${
-            isActive ? "border-white" : "border-transparent"
-          } transition-all duration-300 mb-3 group relative overflow-hidden`}
-          onClick={() => setCategoriaActual(categoria)}
-        >
-          {/* Efecto de brillo */}
-          {isActive && (
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-20 animate-shimmer"></div>
-          )}
-
-          {/* Contenido */}
-          <div className="relative z-10 flex items-center gap-4 w-full">
-            <div
-              className={`${
-                isActive ? "bg-white/20" : "bg-gray-700"
-              } p-3 rounded-xl transition-all`}
-            >
-              <Icon className="w-6 h-6" strokeWidth={2.5} />
-            </div>
-
-            <div className="flex-1">
-              <p className="text-lg font-black">{categoria.nombre}</p>
-              <p
-                className={`text-xs font-medium ${
-                  isActive ? "text-white/80" : "text-gray-500"
-                }`}
-              >
-                {count} productos
-              </p>
-            </div>
-
-            {/* Indicador de selección */}
-            {isActive && (
-              <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            )}
+    <aside className="relative z-10 w-80 backdrop-blur-xl bg-white/5 border-r border-white/10 overflow-y-auto flex flex-col">
+      {/* Header del Sidebar */}
+      <div className="p-6 border-b border-white/10">
+        <div className="flex items-center gap-4 mb-2">
+          <div className="w-14 h-14 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+            <Flame className="w-8 h-8 text-white" strokeWidth={2.5} />
           </div>
-        </button>
-      );
-    })}
-  </div>
+          <div>
+            <h2 className="text-2xl font-bold text-white tracking-tight">Sabor Express</h2>
+            <p className="text-xs text-white/60 font-medium tracking-wider">Menú Digital</p>
+          </div>
+        </div>
+      </div>
 
-  {/* Footer del Sidebar */}
-  <div className="p-4 bg-gray-900 border-t border-gray-700">
-    <p className="text-center text-gray-500 text-xs">
-      Toca una categoría para ver productos
-    </p>
-  </div>
-</aside>
-);
+      {/* Lista de Categorías */}
+      <div className="p-4 space-y-3 flex-1">
+        {categorias.map((categoria) => {
+          const Icon = categoria.icono;
+          const count = contarProductos(categoria.id);
+          const isActive = categoriaActual.id === categoria.id;
+
+          return (
+            <button
+              key={categoria.id}
+              type="button"
+              className={`${
+                isActive
+                  ? "bg-gradient-to-r " + categoria.color + " text-white shadow-xl scale-[1.02] border-white/30"
+                  : "backdrop-blur-xl bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border-white/10"
+              } 
+              text-left font-bold w-full p-4 rounded-xl cursor-pointer flex items-center gap-3 border transition-all duration-300 group relative overflow-hidden`}
+              onClick={() => setCategoriaActual(categoria)}
+            >
+              {/* Efecto de brillo al hover */}
+              {!isActive && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 group-hover:translate-x-full transform -translate-x-full"></div>
+              )}
+
+              {/* Contenido */}
+              <div className="relative z-10 flex items-center gap-3 w-full">
+                <div
+                  className={`${
+                    isActive ? "bg-white/20" : "bg-white/10 group-hover:bg-white/15"
+                  } p-3 rounded-xl transition-all duration-300`}
+                >
+                  <Icon className="w-6 h-6" strokeWidth={2.5} />
+                </div>
+
+                <div className="flex-1">
+                  <p className="text-base font-bold">{categoria.nombre}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    {count > 0 && isActive && (
+                      <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+                    )}
+                    <p
+                      className={`text-xs font-medium ${
+                        isActive ? "text-white/90" : "text-white/50 group-hover:text-white/70"
+                      }`}
+                    >
+                      {count} productos
+                    </p>
+                  </div>
+                </div>
+
+                {/* Indicador de selección */}
+                {isActive && (
+                  <div className="w-2 h-2 bg-white rounded-full shadow-lg"></div>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Footer del Sidebar */}
+      <div className="p-4 border-t border-white/10 backdrop-blur-xl bg-white/5">
+        <div className="flex items-center justify-center gap-2 text-white/40 text-xs font-medium">
+          <div className="w-2 h-2 bg-white/20 rounded-full"></div>
+          <p>Toca una categoría para ver productos</p>
+        </div>
+      </div>
+    </aside>
+  );
 }

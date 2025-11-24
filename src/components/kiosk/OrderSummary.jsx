@@ -1,209 +1,263 @@
-import { useState } from "react";
+import { X, Trash2, Plus, Minus, ShoppingBag, AlertCircle } from "lucide-react";
 import useCart from "../../hooks/useCart";
 import { formatMoney } from "../../helpers";
-import { orderService } from "../../services/orderService";
+import { useState } from "react";
 import { toast } from "react-toastify";
-import { ShoppingCart, Trash2, Plus, Minus, Send, Loader2, X } from "lucide-react";
+import { orderService } from "../../services/orderService";
+import { useNavigate } from "react-router-dom";
 
-export default function OrderSummary() {
-  const { pedido, total, editarCantidad, eliminarProducto, vaciarPedido } = useCart();
-  const [loading, setLoading] = useState(false);
+export default function OrderSummary({ onClose }) {
+  const { pedido, total, agregarProducto, eliminarProducto, vaciarPedido } = useCart();
+  const [procesando, setProcesando] = useState(false);
+  const navigate = useNavigate();
 
-  const confirmarPedido = async () => {
+  const handleConfirmarPedido = async () => {
     if (pedido.length === 0) {
-      toast.error("El carrito está vacío", {
+      toast.warning("Agrega productos antes de confirmar", {
         position: "top-center",
-        toastId: "empty-cart",
       });
       return;
     }
 
-    setLoading(true);
-
     try {
-      // Preparar datos para el backend
+      setProcesando(true);
+      
+      // Preparar items del pedido - El backend solo necesita productId y cantidad
       const items = pedido.map((item) => ({
         productId: item.id,
         cantidad: item.cantidad,
       }));
 
-      // Crear orden en el backend
+      // Enviar pedido al backend
       const response = await orderService.createOrder({ items });
 
+      // Mostrar número de turno
       toast.success(
-        <div>
-          <p className="font-black text-lg">¡Pedido Enviado!</p>
-          <p className="text-2xl font-black text-primary mt-2">
-            Tu turno es: {response.data.numeroTurno}
-          </p>
-          <p className="text-sm mt-2">Dirígete a caja para pagar</p>
-        </div>,
+        `¡Pedido confirmado! Tu número de turno es: ${response.data.numeroTurno}`,
         {
-          autoClose: 8000,
           position: "top-center",
-          className: "bg-white",
-          toastId: "order-success",
+          autoClose: 5000,
         }
       );
 
       // Limpiar carrito
       vaciarPedido();
+      
+      // Cerrar resumen
+      onClose();
 
-      // Disparar evento para actualizar otras pantallas
-      window.dispatchEvent(new Event("storage"));
+      // Opcional: Redirigir a una página de confirmación
+      // navigate(`/turno/${response.numeroTurno}`);
     } catch (error) {
-      console.error("Error al crear orden:", error);
-      toast.error(error.message || "Hubo un error al enviar el pedido", {
+      console.error("Error al confirmar pedido:", error);
+      toast.error("Error al procesar el pedido. Intenta de nuevo.", {
         position: "top-center",
-        toastId: "order-error",
       });
     } finally {
-      setLoading(false);
+      setProcesando(false);
     }
   };
 
   return (
-    <aside className="w-full md:w-96 md:h-screen bg-white shadow-2xl p-6 flex flex-col fixed md:right-0 md:top-0 z-30 overflow-hidden border-l-4 border-primary">
+    <div className="h-full backdrop-blur-2xl bg-slate-900/95 border-l border-white/10 flex flex-col shadow-2xl">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-3xl font-black text-gray-800 flex items-center gap-3">
-            <ShoppingCart className="w-8 h-8 text-primary" />
-            Mi Pedido
-          </h2>
-          {pedido.length > 0 && (
-            <div className="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center font-black">
-              {pedido.length}
+      <div className="backdrop-blur-xl bg-white/5 border-b border-white/10 p-6">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">
+              <ShoppingBag className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
-          )}
+            <div>
+              <h2 className="text-2xl font-bold text-white">Mi Pedido</h2>
+              <p className="text-sm text-white/60 font-medium">
+                {pedido.length} {pedido.length === 1 ? "producto" : "productos"}
+              </p>
+            </div>
+          </div>
+          
+          <button
+            onClick={onClose}
+            className="w-10 h-10 backdrop-blur-xl bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center transition-all duration-300 border border-white/10 group"
+          >
+            <X className="w-5 h-5 text-white/70 group-hover:text-white group-hover:rotate-90 transition-all" strokeWidth={2.5} />
+          </button>
         </div>
-        <div className="h-1 bg-gradient-to-r from-primary to-red-700 rounded-full"></div>
+        
+        {/* Línea decorativa */}
+        <div className="h-1 bg-gradient-to-r from-red-500 to-orange-500 rounded-full"></div>
       </div>
 
       {/* Lista de Productos */}
-      <div className="flex-1 overflow-y-scroll custom-scrollbar space-y-4">
+      <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {pedido.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <ShoppingCart className="w-12 h-12 text-gray-400" />
+          <div className="flex flex-col items-center justify-center h-full">
+            <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-12 text-center max-w-sm">
+              <div className="w-20 h-20 backdrop-blur-xl bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <ShoppingBag className="w-10 h-10 text-white/30" strokeWidth={2} />
+              </div>
+              <h3 className="text-2xl font-bold text-white/60 mb-3">
+                Tu carrito está vacío
+              </h3>
+              <p className="text-white/40">
+                Agrega productos del menú para comenzar tu pedido
+              </p>
             </div>
-            <p className="text-gray-500 font-bold text-lg">
-              Tu carrito está vacío
-            </p>
-            <p className="text-gray-400 text-sm mt-2">
-              Agrega productos para continuar
-            </p>
           </div>
         ) : (
-          pedido.map((producto) => (
-            <div
-              key={producto.id}
-              className="bg-gradient-to-br from-gray-50 to-white p-4 rounded-xl shadow-md border-2 border-gray-100 hover:border-primary transition-all relative group"
-            >
-              {/* Botón Eliminar */}
-              <button
-                type="button"
-                className="absolute top-2 right-2 text-red-500 hover:text-red-700 bg-white rounded-full p-1.5 shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => eliminarProducto(producto.id)}
+          <>
+            {pedido.map((item) => (
+              <div
+                key={item.id}
+                className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-4 transition-all duration-300 hover:border-white/20 hover:bg-white/[0.07] group"
               >
-                <X className="w-4 h-4" strokeWidth={3} />
-              </button>
+                <div className="flex gap-4">
+                  {/* Imagen */}
+                  <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-800 flex-shrink-0">
+                    <img
+                      src={item.imagen}
+                      alt={item.nombre}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      onError={(e) => {
+                        e.target.src =
+                          "https://via.placeholder.com/80x80/1e293b/94a3b8?text=SE";
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
+                  </div>
 
-              <div className="flex justify-between items-start mb-3">
-                <div className="flex-1 pr-8">
-                  <p className="font-bold text-gray-800 text-sm leading-tight">
-                    {producto.nombre}
-                  </p>
-                  <p className="text-primary font-black text-lg mt-1">
-                    {formatMoney(producto.precio)}
-                  </p>
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-bold text-white text-base mb-1 line-clamp-1">
+                      {item.nombre}
+                    </h4>
+                    <p className="text-lg font-black text-white/90 tabular-nums">
+                      {formatMoney(item.precio)}
+                    </p>
+
+                    {/* Controles de cantidad */}
+                    <div className="flex items-center gap-3 mt-3">
+                      <button
+                        onClick={() => eliminarProducto(item.id)}
+                        className="w-8 h-8 backdrop-blur-xl bg-white/10 hover:bg-red-500/20 hover:border-red-400/30 rounded-lg flex items-center justify-center transition-all border border-white/10 group/btn"
+                      >
+                        <Minus className="w-4 h-4 text-white/70 group-hover/btn:text-red-400" strokeWidth={2.5} />
+                      </button>
+
+                      <span className="text-lg font-bold text-white tabular-nums min-w-[2rem] text-center">
+                        {item.cantidad}
+                      </span>
+
+                      <button
+                        onClick={() => agregarProducto(item)}
+                        className="w-8 h-8 backdrop-blur-xl bg-white/10 hover:bg-green-500/20 hover:border-green-400/30 rounded-lg flex items-center justify-center transition-all border border-white/10 group/btn"
+                      >
+                        <Plus className="w-4 h-4 text-white/70 group-hover/btn:text-green-400" strokeWidth={2.5} />
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          // Eliminar completamente el producto
+                          for (let i = 0; i < item.cantidad; i++) {
+                            eliminarProducto(item.id);
+                          }
+                        }}
+                        className="ml-auto w-8 h-8 backdrop-blur-xl bg-white/10 hover:bg-red-500/20 hover:border-red-400/30 rounded-lg flex items-center justify-center transition-all border border-white/10 group/btn"
+                      >
+                        <Trash2 className="w-4 h-4 text-white/70 group-hover/btn:text-red-400" strokeWidth={2.5} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Subtotal */}
+                <div className="mt-3 pt-3 border-t border-white/10 flex justify-between items-center">
+                  <span className="text-sm font-medium text-white/60">Subtotal</span>
+                  <span className="text-lg font-bold text-white tabular-nums">
+                    {formatMoney(item.precio * item.cantidad)}
+                  </span>
                 </div>
               </div>
+            ))}
+          </>
+        )}
+      </div>
 
-              {/* Controles de Cantidad */}
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-2 bg-white rounded-lg shadow border-2 border-gray-200">
-                  <button
-                    type="button"
-                    className="px-3 py-2 font-bold text-lg text-gray-600 hover:bg-red-50 hover:text-primary transition-colors rounded-l-lg"
-                    onClick={() =>
-                      editarCantidad(producto.id, producto.cantidad - 1)
-                    }
-                  >
-                    <Minus className="w-4 h-4" strokeWidth={3} />
-                  </button>
-                  <span className="font-black text-xl w-8 text-center">
-                    {producto.cantidad}
-                  </span>
-                  <button
-                    type="button"
-                    className="px-3 py-2 font-bold text-lg text-gray-600 hover:bg-green-50 hover:text-green-600 transition-colors rounded-r-lg"
-                    onClick={() =>
-                      editarCantidad(producto.id, producto.cantidad + 1)
-                    }
-                  >
-                    <Plus className="w-4 h-4" strokeWidth={3} />
-                  </button>
-                </div>
-
-                <p className="font-black text-gray-800 text-lg">
-                  {formatMoney(producto.precio * producto.cantidad)}
+      {/* Footer con Total y Botones */}
+      {pedido.length > 0 && (
+        <div className="backdrop-blur-xl bg-white/5 border-t border-white/10 p-6 space-y-4">
+          {/* Total */}
+          <div className="backdrop-blur-xl bg-gradient-to-r from-white/10 to-white/5 border border-white/20 rounded-2xl p-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-1">
+                  Total a Pagar
+                </p>
+                <p className="text-4xl font-black text-white tabular-nums">
+                  {formatMoney(total)}
                 </p>
               </div>
+              <div className="w-12 h-12 bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-400/30 rounded-xl flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                  stroke="currentColor"
+                  className="w-6 h-6 text-green-400"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"
+                  />
+                </svg>
+              </div>
             </div>
-          ))
-        )}
-      </div>
+          </div>
 
-      {/* Footer con Total y Botón */}
-      <div className="mt-6 pt-6 border-t-2 border-gray-200">
-        {/* Total */}
-        <div className="bg-gradient-to-r from-gray-100 to-gray-50 p-4 rounded-xl mb-4">
-          <div className="flex justify-between items-center">
-            <p className="text-xl text-gray-600 font-bold">Total a Pagar:</p>
-            <p className="text-4xl font-black text-gray-900">
-              {formatMoney(total)}
-            </p>
+          {/* Botones de Acción */}
+          <div className="space-y-3">
+            <button
+              onClick={handleConfirmarPedido}
+              disabled={procesando}
+              className="w-full backdrop-blur-xl bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl flex items-center justify-center gap-3 border border-white/20 group"
+            >
+              {procesando ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  <span>Procesando...</span>
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={2.5}
+                    stroke="currentColor"
+                    className="w-5 h-5 group-hover:scale-110 transition-transform"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span>Confirmar Pedido</span>
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={vaciarPedido}
+              className="w-full backdrop-blur-xl bg-white/10 hover:bg-white/15 text-white/90 hover:text-white font-bold py-3 px-6 rounded-xl transition-all border border-white/10 hover:border-white/20 flex items-center justify-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" strokeWidth={2.5} />
+              <span>Vaciar Carrito</span>
+            </button>
           </div>
         </div>
-
-        {/* Botón Confirmar */}
-        <button
-          type="button"
-          className={`${
-            pedido.length === 0 || loading
-              ? "bg-gray-300 cursor-not-allowed"
-              : "bg-gradient-to-r from-primary to-red-700 hover:from-red-700 hover:to-primary shadow-lg hover:shadow-2xl"
-          } 
-          w-full p-5 text-white font-black uppercase rounded-xl text-xl transition-all duration-300 flex items-center justify-center gap-3 active:scale-95`}
-          onClick={confirmarPedido}
-          disabled={pedido.length === 0 || loading}
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-6 h-6 animate-spin" />
-              Procesando...
-            </>
-          ) : (
-            <>
-              <Send className="w-6 h-6" />
-              Confirmar Pedido
-            </>
-          )}
-        </button>
-
-        {/* Botón Vaciar Carrito */}
-        {pedido.length > 0 && !loading && (
-          <button
-            type="button"
-            className="w-full mt-3 p-3 text-red-600 hover:text-red-800 font-bold uppercase text-sm transition-colors flex items-center justify-center gap-2"
-            onClick={vaciarPedido}
-          >
-            <Trash2 className="w-4 h-4" />
-            Vaciar Carrito
-          </button>
-        )}
-      </div>
-    </aside>
+      )}
+    </div>
   );
 }
