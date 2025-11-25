@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
-import { toast } from "react-toastify";
-import { ChefHat, Clock, Loader2, RefreshCw, AlertCircle, CheckCircle } from "lucide-react";
+import { Clock, ChefHat, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { orderService } from "../../services/orderService";
 
 export default function KitchenDisplay() {
@@ -8,86 +7,57 @@ export default function KitchenDisplay() {
   const [loading, setLoading] = useState(true);
   const [fecha, setFecha] = useState(new Date());
 
-  // Cargar pedidos activos en cocina desde el backend
   const cargarPedidos = async () => {
     try {
       const response = await orderService.getActiveKitchenOrders();
       setPedidos(response.data || []);
     } catch (error) {
-      console.error("Error al cargar pedidos de cocina:", error);
-      toast.error("Error al cargar pedidos", { position: "top-center" });
+      console.error("Error al cargar pedidos:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Marcar pedido como listo
-  const marcarComoListo = async (orderId) => {
-    try {
-      await orderService.markAsReady(orderId);
-      toast.success("✅ Pedido marcado como LISTO", {
-        position: "top-center",
-      });
-      cargarPedidos(); // Recargar lista
-    } catch (error) {
-      console.error("Error:", error);
-      toast.error(error.response?.data?.message || "Error al marcar como listo", {
-        position: "top-center",
-      });
-    }
-  };
-
-  // Reloj en tiempo real
   useEffect(() => {
-    const clockInterval = setInterval(() => {
-      setFecha(new Date());
-    }, 1000);
-
+    const clockInterval = setInterval(() => setFecha(new Date()), 1000);
     return () => clearInterval(clockInterval);
   }, []);
 
-  // Cargar pedidos al montar y cada 3 segundos
   useEffect(() => {
     cargarPedidos();
-
-    const interval = setInterval(() => {
-      cargarPedidos();
-    }, 3000); // Auto-refresh cada 3 segundos
-
+    const interval = setInterval(cargarPedidos, 3000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-red-800 to-orange-900 text-white p-4 md:p-6">
-      {/* Header con Reloj */}
-      <header className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-4 md:p-6 mb-6 md:mb-8">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 text-gray-800 p-4 md:p-6">
+      {/* Header */}
+      <header className="bg-white rounded-2xl shadow-lg border-2 border-red-200 p-4 md:p-6 mb-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Logo y Título */}
-          <div className="flex items-center gap-3 md:gap-4">
-            <div className="bg-white/20 backdrop-blur-sm p-3 md:p-4 rounded-xl">
-              <ChefHat className="w-8 h-8 md:w-10 md:h-10" strokeWidth={2.5} />
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-red-500 to-orange-500 p-3 rounded-xl shadow-lg">
+              <ChefHat className="w-8 h-8 text-white" strokeWidth={2.5} />
             </div>
             <div>
-              <h1 className="text-2xl md:text-4xl font-black tracking-tight">
+              <h1 className="text-2xl md:text-3xl font-black text-gray-800">
                 PANTALLA DE COCINA
               </h1>
-              <p className="text-white/70 font-medium text-sm md:text-lg">
-                Pedidos en preparación
+              <p className="text-gray-600 font-medium">
+                Vista en tiempo real • Solo lectura
               </p>
             </div>
           </div>
 
-          {/* Reloj Digital */}
           <div className="text-center md:text-right">
-            <div className="bg-white/20 backdrop-blur-sm px-4 md:px-6 py-2 md:py-3 rounded-xl border border-white/30">
-              <p className="text-xs md:text-sm text-white/70 font-bold uppercase tracking-wider mb-1">
+            <div className="bg-gradient-to-r from-red-50 to-orange-50 border-2 border-red-200 px-4 py-2 rounded-xl">
+              <p className="text-xs text-gray-600 font-bold uppercase mb-1">
                 {fecha.toLocaleDateString("es-ES", {
                   weekday: "long",
                   day: "numeric",
                   month: "long",
                 })}
               </p>
-              <p className="text-2xl md:text-4xl font-black tabular-nums">
+              <p className="text-2xl font-black text-gray-800 tabular-nums">
                 {fecha.toLocaleTimeString("es-ES", {
                   hour: "2-digit",
                   minute: "2-digit",
@@ -98,27 +68,26 @@ export default function KitchenDisplay() {
           </div>
         </div>
 
-        {/* Badge de estado */}
-        <div className="mt-4 flex flex-col md:flex-row items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-            <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/30">
-              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-              <span className="font-bold text-xs md:text-sm">
-                Sistema en línea
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 bg-green-100 border-2 border-green-300 px-4 py-2 rounded-xl">
+              <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="font-bold text-sm text-green-700">
+                Sistema activo
               </span>
             </div>
-            <div className="bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/30">
-              <span className="font-bold text-xs md:text-sm">
-                {pedidos.length} pedido{pedidos.length !== 1 ? "s" : ""} activo{pedidos.length !== 1 ? "s" : ""}
+            <div className="bg-gradient-to-r from-red-100 to-orange-100 border-2 border-red-300 px-4 py-2 rounded-xl">
+              <span className="font-bold text-sm text-gray-800">
+                {pedidos.length} pedido{pedidos.length !== 1 ? "s" : ""} activo
+                {pedidos.length !== 1 ? "s" : ""}
               </span>
             </div>
           </div>
 
-          {/* Botón de actualización manual */}
           <button
             onClick={cargarPedidos}
             disabled={loading}
-            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm px-4 py-2 rounded-xl border border-white/30 font-bold text-xs md:text-sm flex items-center gap-2 transition-all disabled:opacity-50"
+            className="bg-blue-100 hover:bg-blue-200 border-2 border-blue-300 px-4 py-2 rounded-xl font-bold text-sm text-blue-700 flex items-center gap-2 transition-all disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Actualizar
@@ -129,15 +98,17 @@ export default function KitchenDisplay() {
       {/* Grid de Pedidos */}
       {loading && pedidos.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[400px]">
-          <Loader2 className="w-12 h-12 md:w-16 md:h-16 animate-spin text-white/50 mb-4" />
-          <p className="text-white/70 font-bold text-base md:text-lg">Cargando pedidos...</p>
+          <Loader2 className="w-12 h-12 animate-spin text-gray-400 mb-4" />
+          <p className="text-gray-600 font-bold text-lg">Cargando pedidos...</p>
         </div>
       ) : pedidos.length === 0 ? (
-        <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl p-12 md:p-16 text-center">
-          <AlertCircle className="w-16 h-16 md:w-20 md:h-20 text-white/30 mx-auto mb-6" />
-          <h2 className="text-2xl md:text-3xl font-black mb-3">No hay pedidos en cocina</h2>
-          <p className="text-white/70 text-base md:text-lg font-medium">
-            Los pedidos aparecerán aquí cuando sean confirmados por el administrador
+        <div className="bg-white rounded-2xl shadow-lg border-2 border-gray-200 p-12 text-center">
+          <AlertCircle className="w-20 h-20 text-gray-300 mx-auto mb-6" />
+          <h2 className="text-3xl font-black text-gray-700 mb-3">
+            No hay pedidos en cocina
+          </h2>
+          <p className="text-gray-500 text-lg font-medium">
+            Los pedidos aparecerán aquí cuando el administrador los confirme
           </p>
         </div>
       ) : (
@@ -145,57 +116,52 @@ export default function KitchenDisplay() {
           {pedidos.map((pedido, index) => (
             <div
               key={pedido.id}
-              className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl shadow-2xl overflow-hidden transform transition-all hover:scale-105 hover:shadow-3xl animate-fade-in"
-              style={{
-                animationDelay: `${index * 0.1}s`,
-              }}
+              className="bg-white rounded-2xl shadow-lg border-2 border-orange-200 overflow-hidden transform transition-all hover:scale-105 hover:shadow-xl animate-fade-in"
+              style={{ animationDelay: `${index * 0.1}s` }}
             >
-              {/* Header de la Comanda */}
-              <div className="bg-white/20 backdrop-blur-sm p-4 md:p-6 border-b border-white/20">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 border-b-2 border-orange-200 p-4 md:p-6">
                 <div className="flex items-center justify-between mb-3">
                   <div>
-                    <p className="text-xs text-white/70 font-bold uppercase tracking-wider">
+                    <p className="text-xs text-gray-600 font-bold uppercase tracking-wider">
                       Turno
                     </p>
-                    <p className="text-5xl md:text-6xl font-black">
+                    <p className="text-5xl md:text-6xl font-black text-gray-800">
                       {String(pedido.numeroTurno).padStart(3, "0")}
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="bg-yellow-500/20 backdrop-blur-sm border border-yellow-500/30 px-3 py-1.5 rounded-lg">
-                      <p className="text-yellow-200 text-xs font-bold uppercase tracking-wider">
-                        Preparando
+                    <div className="bg-yellow-100 border-2 border-yellow-300 px-3 py-1.5 rounded-lg">
+                      <p className="text-yellow-700 text-xs font-bold uppercase">
+                        En Preparación
                       </p>
                     </div>
                   </div>
                 </div>
 
-                {/* Tiempo de espera */}
-                <div className="flex items-center gap-2 text-white/60 text-sm">
+                <div className="flex items-center gap-2 text-gray-600 text-sm">
                   <Clock className="w-4 h-4" />
-                  <span className="font-medium">
-                    {pedido.tiempoEspera}
-                  </span>
+                  <span className="font-medium">{pedido.tiempoEspera}</span>
                 </div>
               </div>
 
-              {/* Cuerpo (Lista de productos) */}
-              <div className="p-4 md:p-6 space-y-3 md:space-y-4 min-h-[200px] max-h-[350px] md:max-h-[400px] overflow-y-auto">
+              {/* Items */}
+              <div className="p-4 md:p-6 space-y-3 min-h-[200px] max-h-[350px] overflow-y-auto">
                 {pedido.items?.map((item, itemIndex) => (
                   <div
                     key={itemIndex}
-                    className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl p-3 md:p-4"
+                    className="bg-gradient-to-r from-orange-50 to-red-50 border-2 border-orange-200 rounded-xl p-3"
                   >
-                    <div className="flex items-start gap-3 md:gap-4">
-                      <div className="bg-white/20 backdrop-blur-sm text-white font-black w-10 h-10 md:w-12 md:h-12 flex items-center justify-center rounded-xl text-lg md:text-xl flex-shrink-0 shadow-lg">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-gradient-to-br from-red-500 to-orange-500 text-white font-black w-10 h-10 flex items-center justify-center rounded-xl text-lg shadow-lg">
                         {item.cantidad}
                       </div>
                       <div className="flex-1">
-                        <p className="text-lg md:text-xl font-black leading-snug mb-1">
+                        <p className="text-lg font-black text-gray-800 leading-snug mb-1">
                           {item.producto}
                         </p>
                         {item.descripcion && (
-                          <p className="text-xs md:text-sm text-white/60 font-medium">
+                          <p className="text-sm text-gray-600 font-medium">
                             {item.descripcion}
                           </p>
                         )}
@@ -204,36 +170,31 @@ export default function KitchenDisplay() {
                   </div>
                 ))}
 
-                {/* Observaciones especiales */}
                 {pedido.observacion && (
-                  <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-3 md:p-4 mt-3">
-                    <p className="text-red-200 text-sm md:text-base font-bold">
+                  <div className="bg-red-100 border-2 border-red-300 rounded-xl p-3">
+                    <p className="text-red-700 text-sm font-bold">
                       ⚠️ Nota: {pedido.observacion}
                     </p>
                   </div>
                 )}
               </div>
 
-              {/* Footer con botón */}
-              <div className="p-4 md:p-5 bg-white/5 backdrop-blur-sm border-t border-white/20">
-                <button
-                  onClick={() => marcarComoListo(pedido.id)}
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black py-3 md:py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl active:scale-95"
-                >
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="text-sm md:text-base">Marcar como Listo</span>
-                </button>
+              {/* Footer - SIN BOTONES (Solo vista) */}
+              <div className="p-4 bg-gray-50 border-t-2 border-gray-200 text-center">
+                <p className="text-xs text-gray-500 font-medium">
+                  📢 Avisa al administrador cuando esté listo
+                </p>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Footer con instrucciones */}
-      <div className="mt-6 md:mt-8 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 text-center">
-        <p className="text-white/50 font-medium text-sm md:text-base">
-          Los pedidos se actualizan automáticamente cada 3 segundos •
-          Al marcar como listo, el administrador podrá enviarlo a la pantalla de turnos
+      {/* Instrucciones */}
+      <div className="mt-6 bg-blue-50 border-2 border-blue-200 rounded-2xl p-4 text-center">
+        <p className="text-blue-700 font-medium text-sm">
+          🔄 Se actualiza automáticamente cada 3 segundos • Avisa verbalmente al
+          administrador cuando los pedidos estén listos
         </p>
       </div>
     </div>

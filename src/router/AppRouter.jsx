@@ -1,41 +1,40 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-// 1. Layouts (Estructuras visuales)
+// Layouts
 import { KioskLayout } from "../layouts/KioskLayout";
 import AdminLayout from "../layouts/AdminLayout";
 
-// 2. Páginas Reales (Componentes funcionales)
+// Páginas
 import Menu from "../pages/kiosk/Menu";
 import Login from "../pages/auth/Login";
-import Kitchen from "../pages/kitchen/Kitchen";
+import Kitchen from "../pages/kitchen/Kitchen"; // 👁️ SOLO VISTA
 import AdminDashboard from "../pages/admin/AdminDashboard";
-import TurnMonitor from "../pages/monitor/TurnMonitor"; // <--- NUEVO: Monitor Real
+import ProductsManager from "../pages/admin/ProductsManager"; // 🆕 CRUD de productos
+import TurnMonitor from "../pages/monitor/TurnMonitor";
 
 export const AppRouter = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 🔓 RUTAS PÚBLICAS (Kiosco) */}
-        {/* Usan el KioskLayout (Header rojo + Footer) */}
+        {/* 🔓 RUTAS PÚBLICAS */}
         <Route element={<KioskLayout />}>
           <Route path="/" element={<Menu />} />
         </Route>
 
-        {/* 🔓 PANTALLA DE TURNOS (Monitor TV) */}
-        {/* Sin layout, ocupa toda la pantalla */}
+        {/* 🔓 PANTALLAS SIN AUTENTICACIÓN (Acceso desde celular/tablet) */}
         <Route path="/turnos" element={<TurnMonitor />} />
+        <Route path="/cocina" element={<Kitchen />} /> {/* 👁️ SOLO VISTA - SIN BOTONES */}
 
-        {/* 🔐 AUTENTICACIÓN */}
+        {/* 🔐 LOGIN */}
         <Route path="/login" element={<Login />} />
 
-        {/* 🛡️ RUTAS PRIVADAS (Requieren Login) */}
-        {/* Todo lo que esté aquí verifica token y usa el Sidebar Admin */}
+        {/* 🛡️ RUTAS PRIVADAS (Requieren Login ADMIN) */}
         <Route element={<AdminLayout />}>
           <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/cocina" element={<Kitchen />} />
+          <Route path="/admin/productos" element={<ProductsManager />} /> {/* 🆕 CRUD */}
         </Route>
 
-        {/* Redirección por defecto */}
+        {/* Redirección */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>

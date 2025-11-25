@@ -1,15 +1,14 @@
-import { X, Trash2, Plus, Minus, ShoppingBag, AlertCircle } from "lucide-react";
+import { X, Trash2, Plus, Minus, ShoppingBag, AlertCircle, MessageSquare } from "lucide-react";
 import useCart from "../../hooks/useCart";
 import { formatMoney } from "../../helpers";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { orderService } from "../../services/orderService";
-import { useNavigate } from "react-router-dom";
 
 export default function OrderSummary({ onClose }) {
   const { pedido, total, agregarProducto, eliminarProducto, vaciarPedido } = useCart();
   const [procesando, setProcesando] = useState(false);
-  const navigate = useNavigate();
+  const [observacion, setObservacion] = useState(""); // 🆕 Estado para observaciones
 
   const handleConfirmarPedido = async () => {
     if (pedido.length === 0) {
@@ -22,16 +21,17 @@ export default function OrderSummary({ onClose }) {
     try {
       setProcesando(true);
       
-      // Preparar items del pedido - El backend solo necesita productId y cantidad
       const items = pedido.map((item) => ({
         productId: item.id,
         cantidad: item.cantidad,
       }));
 
-      // Enviar pedido al backend
-      const response = await orderService.createOrder({ items });
+      // 🆕 Enviar observaciones al backend
+      const response = await orderService.createOrder({ 
+        items,
+        observacion: observacion.trim() || undefined // Solo enviar si hay texto
+      });
 
-      // Mostrar número de turno
       toast.success(
         `¡Pedido confirmado! Tu número de turno es: ${response.data.numeroTurno}`,
         {
@@ -40,14 +40,9 @@ export default function OrderSummary({ onClose }) {
         }
       );
 
-      // Limpiar carrito
       vaciarPedido();
-      
-      // Cerrar resumen
+      setObservacion(""); // Limpiar observaciones
       onClose();
-
-      // Opcional: Redirigir a una página de confirmación
-      // navigate(`/turno/${response.numeroTurno}`);
     } catch (error) {
       console.error("Error al confirmar pedido:", error);
       toast.error("Error al procesar el pedido. Intenta de nuevo.", {
@@ -83,7 +78,6 @@ export default function OrderSummary({ onClose }) {
           </button>
         </div>
         
-        {/* Línea decorativa */}
         <div className="h-1 bg-gradient-to-r from-red-500 to-orange-500 rounded-full"></div>
       </div>
 
@@ -111,21 +105,18 @@ export default function OrderSummary({ onClose }) {
                 className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-4 transition-all duration-300 hover:border-white/20 hover:bg-white/[0.07] group"
               >
                 <div className="flex gap-4">
-                  {/* Imagen */}
                   <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-slate-800 flex-shrink-0">
                     <img
                       src={item.imagen}
                       alt={item.nombre}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       onError={(e) => {
-                        e.target.src =
-                          "https://via.placeholder.com/80x80/1e293b/94a3b8?text=SE";
+                        e.target.src = "https://via.placeholder.com/80x80/1e293b/94a3b8?text=SE";
                       }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent"></div>
                   </div>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <h4 className="font-bold text-white text-base mb-1 line-clamp-1">
                       {item.nombre}
@@ -134,7 +125,6 @@ export default function OrderSummary({ onClose }) {
                       {formatMoney(item.precio)}
                     </p>
 
-                    {/* Controles de cantidad */}
                     <div className="flex items-center gap-3 mt-3">
                       <button
                         onClick={() => eliminarProducto(item.id)}
@@ -156,7 +146,6 @@ export default function OrderSummary({ onClose }) {
 
                       <button
                         onClick={() => {
-                          // Eliminar completamente el producto
                           for (let i = 0; i < item.cantidad; i++) {
                             eliminarProducto(item.id);
                           }
@@ -169,7 +158,6 @@ export default function OrderSummary({ onClose }) {
                   </div>
                 </div>
 
-                {/* Subtotal */}
                 <div className="mt-3 pt-3 border-t border-white/10 flex justify-between items-center">
                   <span className="text-sm font-medium text-white/60">Subtotal</span>
                   <span className="text-lg font-bold text-white tabular-nums">
@@ -182,9 +170,28 @@ export default function OrderSummary({ onClose }) {
         )}
       </div>
 
-      {/* Footer con Total y Botones */}
+      {/* Footer con Total, Observaciones y Botones */}
       {pedido.length > 0 && (
         <div className="backdrop-blur-xl bg-white/5 border-t border-white/10 p-6 space-y-4">
+          {/* 🆕 CAMPO DE OBSERVACIONES */}
+          <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-4">
+            <label className="flex items-center gap-2 text-white/80 font-bold text-sm mb-3">
+              <MessageSquare className="w-4 h-4" strokeWidth={2.5} />
+              Observaciones (Opcional)
+            </label>
+            <textarea
+              value={observacion}
+              onChange={(e) => setObservacion(e.target.value)}
+              placeholder="Ejemplo: Sin cebolla, sin picante, etc."
+              maxLength={200}
+              rows={3}
+              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 resize-none"
+            />
+            <p className="text-xs text-white/40 mt-2 text-right">
+              {observacion.length}/200 caracteres
+            </p>
+          </div>
+
           {/* Total */}
           <div className="backdrop-blur-xl bg-gradient-to-r from-white/10 to-white/5 border border-white/20 rounded-2xl p-4">
             <div className="flex justify-between items-center">
@@ -215,7 +222,7 @@ export default function OrderSummary({ onClose }) {
             </div>
           </div>
 
-          {/* Botones de Acción */}
+          {/* Botones */}
           <div className="space-y-3">
             <button
               onClick={handleConfirmarPedido}

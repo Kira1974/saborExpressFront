@@ -124,6 +124,21 @@ export default function AdminPanel() {
     }
   };
 
+  const handleMarkAsReady = async (orderId) => {
+    try {
+      await orderService.markAsReady(orderId);
+      toast.success("✅ Pedido marcado como LISTO", {
+        position: "top-center",
+      });
+      loadData();
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error(error.response?.data?.message || "Error al marcar como listo", {
+        position: "top-center",
+      });
+    }
+  };
+
   const handleSendToDisplay = async (orderId) => {
     try {
       await orderService.sendToDisplay(orderId);
@@ -369,7 +384,7 @@ export default function AdminPanel() {
               Monitoreo de Cocina
             </h2>
             <p className="text-gray-600 font-medium">
-              Vista de los pedidos que están siendo preparados en cocina
+              Ver pedidos en cocina • Marcar como listos • Enviar a pantalla de turnos
             </p>
           </div>
         </div>
@@ -459,9 +474,19 @@ export default function AdminPanel() {
                 ))}
               </div>
 
-              {/* Footer - Acción */}
-              {order.estado === "LISTO" && (
-                <div className="p-5 bg-gray-50 border-t-2 border-gray-200">
+              {/* Footer - Acciones según estado */}
+              <div className="p-5 bg-gray-50 border-t-2 border-gray-200">
+                {order.estado === "EN_COCINA" ? (
+                  // Si está EN_COCINA, admin puede marcar como listo
+                  <button
+                    onClick={() => handleMarkAsReady(order.id)}
+                    className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl"
+                  >
+                    <CheckCircle className="w-5 h-5" />
+                    Marcar como Listo
+                  </button>
+                ) : (
+                  // Si está LISTO, admin puede enviar a pantalla
                   <button
                     onClick={() => handleSendToDisplay(order.id)}
                     className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-black py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg hover:shadow-xl"
@@ -469,8 +494,8 @@ export default function AdminPanel() {
                     <Send className="w-5 h-5" />
                     Enviar a Pantalla de Turnos
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           ))}
         </div>
