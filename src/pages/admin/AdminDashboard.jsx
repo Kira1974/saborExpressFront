@@ -22,9 +22,9 @@ import { formatMoney } from "../../helpers";
 
 // Tabs del panel
 const TABS = {
-  PENDING: "pending",       // Pedidos pendientes de pago
-  KITCHEN_VIEW: "kitchen",  // Vista de pedidos en cocina (para admin)
-  REPORTS: "reports",       // Reportes y estadísticas
+  PENDING: "pending", // Pedidos pendientes de pago
+  KITCHEN_VIEW: "kitchen", // Vista de pedidos en cocina (para admin)
+  REPORTS: "reports", // Reportes y estadísticas
 };
 
 export default function AdminPanel() {
@@ -101,9 +101,12 @@ export default function AdminPanel() {
       loadData();
     } catch (error) {
       console.error("Error:", error);
-      toast.error(error.response?.data?.message || "Error al procesar el pago", {
-        position: "top-center",
-      });
+      toast.error(
+        error.response?.data?.message || "Error al procesar el pago",
+        {
+          position: "top-center",
+        }
+      );
     }
   };
 
@@ -118,9 +121,12 @@ export default function AdminPanel() {
       loadData();
     } catch (error) {
       console.error("Error:", error);
-      toast.error(error.response?.data?.message || "Error al cancelar el pedido", {
-        position: "top-center",
-      });
+      toast.error(
+        error.response?.data?.message || "Error al cancelar el pedido",
+        {
+          position: "top-center",
+        }
+      );
     }
   };
 
@@ -133,9 +139,12 @@ export default function AdminPanel() {
       loadData();
     } catch (error) {
       console.error("Error:", error);
-      toast.error(error.response?.data?.message || "Error al marcar como listo", {
-        position: "top-center",
-      });
+      toast.error(
+        error.response?.data?.message || "Error al marcar como listo",
+        {
+          position: "top-center",
+        }
+      );
     }
   };
 
@@ -148,9 +157,12 @@ export default function AdminPanel() {
       loadData();
     } catch (error) {
       console.error("Error:", error);
-      toast.error(error.response?.data?.message || "Error al enviar a pantalla", {
-        position: "top-center",
-      });
+      toast.error(
+        error.response?.data?.message || "Error al enviar a pantalla",
+        {
+          position: "top-center",
+        }
+      );
     }
   };
 
@@ -172,7 +184,9 @@ export default function AdminPanel() {
       {count !== undefined && (
         <span
           className={`${
-            activeTab === tab ? "bg-white/30 text-white" : "bg-red-100 text-red-600"
+            activeTab === tab
+              ? "bg-white/30 text-white"
+              : "bg-red-100 text-red-600"
           } px-2.5 py-0.5 rounded-full text-xs font-black`}
         >
           {count}
@@ -238,11 +252,6 @@ export default function AdminPanel() {
           icon={Eye}
           label="Ver Cocina"
           count={kitchenOrders.length}
-        />
-        <TabButton
-          tab={TABS.REPORTS}
-          icon={BarChart3}
-          label="Reportes"
         />
       </div>
     </div>
@@ -338,7 +347,9 @@ export default function AdminPanel() {
               {/* Footer - Total y acciones */}
               <div className="p-5 bg-gray-50 border-t-2 border-gray-200">
                 <div className="flex items-center justify-between mb-4">
-                  <span className="text-gray-700 font-black text-lg">TOTAL:</span>
+                  <span className="text-gray-700 font-black text-lg">
+                    TOTAL:
+                  </span>
                   <span className="text-3xl font-black text-gray-900">
                     {formatMoney(order.total)}
                   </span>
@@ -384,7 +395,8 @@ export default function AdminPanel() {
               Monitoreo de Cocina
             </h2>
             <p className="text-gray-600 font-medium">
-              Ver pedidos en cocina • Marcar como listos • Enviar a pantalla de turnos
+              Ver pedidos en cocina • Marcar como listos • Enviar a pantalla de
+              turnos
             </p>
           </div>
         </div>
@@ -540,7 +552,9 @@ export default function AdminPanel() {
                   <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
                     <Clock className="w-7 h-7" />
                   </div>
-                  <h3 className="text-xl font-black uppercase tracking-wide">Hoy</h3>
+                  <h3 className="text-xl font-black uppercase tracking-wide">
+                    Hoy
+                  </h3>
                 </div>
                 <p className="text-5xl font-black mb-2">
                   {formatMoney(statistics.hoy?.totalIngresos || 0)}
@@ -557,14 +571,20 @@ export default function AdminPanel() {
                   <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
                     <TrendingUp className="w-7 h-7" />
                   </div>
-                  <h3 className="text-xl font-black uppercase tracking-wide">7 Días</h3>
+                  <h3 className="text-xl font-black uppercase tracking-wide">
+                    7 Días
+                  </h3>
                 </div>
                 <p className="text-5xl font-black mb-2">
                   {formatMoney(statistics.ultimos7Dias?.totalIngresos || 0)}
                 </p>
                 <p className="text-sm text-green-100 font-bold">
                   {statistics.ultimos7Dias?.totalPedidos || 0} pedidos •
-                  Promedio: {formatMoney((statistics.ultimos7Dias?.totalIngresos || 0) / 7)}/día
+                  Promedio:{" "}
+                  {formatMoney(
+                    (statistics.ultimos7Dias?.totalIngresos || 0) / 7
+                  )}
+                  /día
                 </p>
               </div>
 
@@ -574,14 +594,20 @@ export default function AdminPanel() {
                   <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl">
                     <DollarSign className="w-7 h-7" />
                   </div>
-                  <h3 className="text-xl font-black uppercase tracking-wide">30 Días</h3>
+                  <h3 className="text-xl font-black uppercase tracking-wide">
+                    30 Días
+                  </h3>
                 </div>
                 <p className="text-5xl font-black mb-2">
                   {formatMoney(statistics.ultimos30Dias?.totalIngresos || 0)}
                 </p>
                 <p className="text-sm text-purple-100 font-bold">
                   {statistics.ultimos30Dias?.totalPedidos || 0} pedidos •
-                  Promedio: {formatMoney((statistics.ultimos30Dias?.totalIngresos || 0) / 30)}/día
+                  Promedio:{" "}
+                  {formatMoney(
+                    (statistics.ultimos30Dias?.totalIngresos || 0) / 30
+                  )}
+                  /día
                 </p>
               </div>
             </div>

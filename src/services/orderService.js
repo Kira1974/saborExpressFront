@@ -1,95 +1,144 @@
-import axiosClient from "../config/axiosClient";
+// src/services/orderService.js
+
+const ORDERS_KEY = "SABOR_EXPRESS_ORDERS";
+const TURN_KEY = "SABOR_EXPRESS_TURN";
+
+// --- FUNCIÓN CLAVE PARA ARREGLAR EL PROBLEMA ---
+// Obtiene la fecha local (YYYY-MM-DD) respetando tu zona horaria
+const getLocalDate = () => {
+  const date = new Date();
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
+};
 
 export const orderService = {
   // ============================================
-  // PANTALLA 1 - KIOSCO (PÚBLICO)
+  // PANTALLA 1 - KIOSCO
   // ============================================
-  
-  // Crear nuevo pedido desde el kiosco
+
   createOrder: async (orderData) => {
-    const { data } = await axiosClient.post("/orders", orderData);
-    return data;
+    // Simulamos espera
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    const hoy = getLocalDate(); // <--- USAMOS FECHA LOCAL
+
+    // Gestión de Turnos (Reinicio diario)
+    let turnData = JSON.parse(localStorage.getItem(TURN_KEY)) || {
+      date: hoy,
+      count: 0,
+    };
+    if (turnData.date !== hoy) {
+      turnData = { date: hoy, count: 0 };
+    }
+    turnData.count += 1;
+    localStorage.setItem(TURN_KEY, JSON.stringify(turnData));
+
+    // Crear Pedido
+    const newOrder = {
+      ...orderData,
+      id: Date.now(),
+      turno: String(turnData.count).padStart(3, "0"),
+      fecha: hoy, // Guardamos YYYY-MM-DD local
+      timestamp: new Date().toISOString(),
+      hora: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      estado: "PENDIENTE_PAGO", // Estado inicial correcto
+      sincronizado: false,
+    };
+
+    // Guardar en BD Local
+    let storedOrders = JSON.parse(localStorage.getItem(ORDERS_KEY)) || [];
+    storedOrders.push(newOrder);
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(storedOrders));
+
+    // Disparar evento para que el Dashboard se entere inmediatamente
+    window.dispatchEvent(new Event("storage"));
+
+    return newOrder;
   },
 
   // ============================================
-  // PANTALLA 2 - ADMINISTRADOR (CAJA) 🔒
+  // PANTALLA 2 - ADMIN (Dashboard)
   // ============================================
-  
-  // Obtener pedidos pendientes de pago (recién creados en kiosco)
+
+  // Obtener pedidos (Con filtro opcional de fecha)
+  getOrders: async (filters = {}) => {
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    const allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY)) || [];
+
+    // Si el dashboard pide una fecha específica, filtramos
+    if (filters.fecha) {
+      return allOrders.filter((order) => order.fecha === filters.fecha);
+    }
+
+    return allOrders;
+  },
+
   getPendingPaymentOrders: async () => {
-    const { data } = await axiosClient.get("/orders/pending-payment");
-    return data;
+    const hoy = getLocalDate();
+    const allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY)) || [];
+    return {
+      data: allOrders.filter(
+        (o) => o.fecha === hoy && o.estado === "PENDIENTE_PAGO"
+      ),
+    };
   },
 
-  // Marcar pedido como pagado y enviar automáticamente a cocina
-  markAsPaidAndSendToKitchen: async (orderId) => {
-    const { data } = await axiosClient.patch(`/orders/${orderId}/mark-paid`);
-    return data;
+  // ============================================
+  // ACCIONES DE ESTADO (Cocina, Caja)
+  // ============================================
+
+  markAsPaidAndSendToKitchen: async (id) => {
+    let allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY)) || [];
+    const updatedOrders = allOrders.map((order) =>
+      order.id === id ? { ...order, estado: "EN_COCINA" } : order
+    );
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(updatedOrders));
+    window.dispatchEvent(new Event("storage"));
+    return { success: true };
   },
 
-  // Cancelar pedido no pagado
-  cancelOrder: async (orderId) => {
-    const { data } = await axiosClient.patch(`/orders/${orderId}/cancel`);
-    return data;
+  markAsReady: async (id) => {
+    let allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY)) || [];
+    const updatedOrders = allOrders.map((order) =>
+      order.id === id ? { ...order, estado: "LISTO" } : order
+    );
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(updatedOrders));
+    window.dispatchEvent(new Event("storage"));
+    return { success: true };
   },
 
-  // Ver pedidos en cocina (para el módulo de monitoreo del admin)
+  sendToDisplay: async (id) => {
+    // En local solo cambiamos estado si quisieras rastrearlo, o no hacemos nada
+    return { success: true };
+  },
+
+  cancelOrder: async (id) => {
+    let allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY)) || [];
+    const updatedOrders = allOrders.map((order) =>
+      order.id === id ? { ...order, estado: "CANCELADO" } : order
+    );
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(updatedOrders));
+    window.dispatchEvent(new Event("storage"));
+    return { success: true };
+  },
+
   getKitchenOrdersForAdmin: async () => {
-    const { data } = await axiosClient.get("/orders/kitchen-view");
-    return data;
+    const hoy = getLocalDate();
+    const allOrders = JSON.parse(localStorage.getItem(ORDERS_KEY)) || [];
+    return {
+      data: allOrders.filter(
+        (o) =>
+          o.fecha === hoy && (o.estado === "EN_COCINA" || o.estado === "LISTO")
+      ),
+    };
   },
 
-  // Enviar pedido listo a la pantalla de turnos (Pantalla 4)
-  sendToDisplay: async (orderId) => {
-    const { data } = await axiosClient.patch(`/orders/${orderId}/send-to-display`);
-    return data;
-  },
-
-  // ============================================
-  // PANTALLA 3 - COCINA (PÚBLICO)
-  // ============================================
-  
-  // Obtener pedidos activos en cocina (EN_COCINA)
-  getActiveKitchenOrders: async () => {
-    const { data } = await axiosClient.get("/orders/kitchen/active");
-    return data;
-  },
-
-  // Marcar pedido como listo (cocina termina de preparar)
-  markAsReady: async (orderId) => {
-    const { data } = await axiosClient.patch(`/orders/${orderId}/mark-ready`);
-    return data;
-  },
-
-  // ============================================
-  // PANTALLA 4 - MONITOR DE TURNOS (PÚBLICO)
-  // ============================================
-  
-  // Obtener el turno que se está mostrando actualmente en la pantalla
-  getCurrentDisplayTurn: async () => {
-    const { data } = await axiosClient.get("/orders/current-display");
-    return data;
-  },
-
-  // ============================================
-  // CONSULTAS GENERALES 🔒
-  // ============================================
-  
-  // Obtener todas las órdenes con filtros opcionales
-  getAllOrders: async (filters = {}) => {
-    const { data} = await axiosClient.get("/orders", { params: filters });
-    return data;
-  },
-
-  // Obtener detalle de una orden específica
-  getOrderById: async (orderId) => {
-    const { data } = await axiosClient.get(`/orders/${orderId}`);
-    return data;
-  },
-
-  // Marcar pedido como entregado (completa el ciclo)
-  markAsDelivered: async (orderId) => {
-    const { data } = await axiosClient.patch(`/orders/${orderId}/mark-delivered`);
-    return data;
+  // Para reportes
+  getAllOrdersHistory: async () => {
+    return JSON.parse(localStorage.getItem(ORDERS_KEY)) || [];
   },
 };

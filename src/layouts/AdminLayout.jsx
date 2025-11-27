@@ -1,6 +1,12 @@
 import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
-import { LayoutDashboard, Package, LogOut, ChefHat } from "lucide-react";
+import {
+  LayoutDashboard,
+  Package,
+  LogOut,
+  ChefHat,
+  BarChart3,
+} from "lucide-react";
 
 export default function AdminLayout() {
   const { user, loading, logout } = useAuth();
@@ -30,6 +36,13 @@ export default function AdminLayout() {
       path: "/admin/productos",
       label: "Productos",
       icon: Package,
+      description: "Gestión del menú",
+    },
+
+    {
+      path: "/admin/reportes",
+      label: "Reportes",
+      icon: BarChart3,
       description: "Gestión del menú",
     },
   ];
@@ -95,11 +108,15 @@ export default function AdminLayout() {
               >
                 <div
                   className={`${
-                    isActive ? "bg-white/20" : "bg-gray-200 group-hover:bg-gray-300"
+                    isActive
+                      ? "bg-white/20"
+                      : "bg-gray-200 group-hover:bg-gray-300"
                   } w-10 h-10 rounded-lg flex items-center justify-center transition-all`}
                 >
                   <Icon
-                    className={`w-5 h-5 ${isActive ? "text-white" : "text-gray-700"}`}
+                    className={`w-5 h-5 ${
+                      isActive ? "text-white" : "text-gray-700"
+                    }`}
                     strokeWidth={2.5}
                   />
                 </div>
